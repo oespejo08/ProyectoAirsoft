@@ -2,10 +2,35 @@ import React,{useState} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Header from './Header'; // Importa el componente Header
 import { ScrollView } from 'react-native-gesture-handler';
+import { Linking } from 'react-native';
+import InstagramIcons from './icons/InstagramIcons';
+import FacebookIcons from './icons/FacebookIcons';
+import YoutubeIcons from './icons/YoutubeIcons';
+
+
+
 
 
 
 const HomeScreen = ({navigation}) => {
+
+
+  const goToInstagramProfile = (perfil) => {
+    const url = `https://www.instagram.com/${perfil}/`;
+    Linking.openURL(url).catch(err => console.error('Error al abrir el enlace:', err));
+  };
+  const goToFacebookProfile = (perfil) => {
+    const url = `https://www.facebook.com/${perfil}/`;
+    Linking.openURL(url).catch(err => console.error('Error al abrir el enlace:', err));
+  };
+
+  const goToYoutubeProfile = (perfil) => {
+    const url = `https://www.youtube.com/${perfil}/`;
+    Linking.openURL(url).catch(err => console.error('Error al abrir el enlace:', err));
+  };
+
+
+
 
   const [partidaSeleccionada, setPartidaSeleccionada] = useState(null);
 
@@ -24,34 +49,52 @@ const HomeScreen = ({navigation}) => {
   };
 
   const camposAirsofts = [
-    {nombre: 'MinervaCombat', ciudad:'Malaga', localizacion:'', partidas: ['Sabado','Domingo']},
-    {nombre: 'ZonaZ', ciudad:'Malaga', localizacion:'', partidas: ['Sabado','Domingo']},
-    {nombre: 'Kampo Lira', ciudad:'Malaga', localizacion:'', partidas: ['Sabado','Domingo']},
+    {nombre: 'MinervaCombat', ciudad:'Malaga', localizacion:'', partidas: ['Sabado','Domingo'], instagram:'minervacombat',facebook:'airsoftminervacombat'},
+    {nombre: 'ZonaZ', ciudad:'Malaga', localizacion:'', partidas: ['Sabado','Domingo'], instagram:'arturojshaw',facebook:'zonaceta',youtube:'@ZonaCetaAirsoft'},
+    {nombre: 'Kampo Lira', ciudad:'Malaga', localizacion:'', partidas: ['Sabado','Domingo'], instagram:'campolira',facebook:'campolira'},
     
 
 
   ]
   return (
     <ScrollView style={styles.container}>
-      <Header title="AirSoftApp" onLoginPress={handleLoginPress} />
-      {camposAirsofts.map((campo, index) => (
-        <View key={index} style={styles.camposContainer}>
-          <TouchableOpacity onPress={() => handlePartidaPress(campo.nombre)}>
-            <Text style={styles.camposNombre}>{campo.nombre}</Text>
-            <Text style={styles.documentacion}>{campo.ciudad}</Text>
-          </TouchableOpacity>
-          {partidaSeleccionada === campo.nombre && (
-            <View style={styles.partidasContainer}>
-              {campo.partidas.map((partida, index) => (
-                <TouchableOpacity key={index} onPress={() => handleApuntarse(partida)}>
-                  <Text style={styles.partidaText}>Partida del {partida}</Text>
-                </TouchableOpacity>
-              ))}
+  <Header title="AirSoftApp" onLoginPress={handleLoginPress} />
+  {camposAirsofts.map((campo, index) => (
+    <View key={index} style={styles.camposContainer}>
+      <TouchableOpacity onPress={() => {handlePartidaPress(campo.nombre);}}>
+        <View style={styles.iconosContainer}>
+          <TouchableOpacity onPress={() => goToInstagramProfile(campo.instagram)}>
+            <View style ={styles.iconosContainer}>
+            <InstagramIcons style={styles.icono} />
             </View>
-          )}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => goToFacebookProfile(campo.facebook)}>
+          <View style={styles.iconosContainer}>
+            <FacebookIcons style={styles.icono}/>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => goToYoutubeProfile(campo.youtube)}>
+            <View style={styles.iconosContainer}>
+            {campo.youtube && <YoutubeIcons style={styles.icono} />}
+            </View>
+            </TouchableOpacity>
+          
         </View>
-      ))}
-    </ScrollView>
+        <Text style={styles.camposNombre}>{campo.nombre}</Text>
+        <Text style={styles.documentacion}>{campo.ciudad}</Text>
+      </TouchableOpacity>
+      {partidaSeleccionada === campo.nombre && (
+        <View style={styles.partidasContainer}>
+          {campo.partidas.map((partida, index) => (
+            <TouchableOpacity key={index} onPress={() => handleApuntarse(partida)}>
+              <Text style={styles.partidaText}>Partida del {partida}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </View>
+  ))}
+</ScrollView>
   );
 };
 
@@ -60,6 +103,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f0f0f0',
+  },
+  iconosContainer: {
+    flexDirection: 'row', // Alinea los iconos en una fila
+    marginTop: 10, // Margen superior entre los iconos y el texto
+  },
+  icono: {
+    marginRight: 10, // Espacio entre los iconos
   },
   content: {
     flex: 1,
