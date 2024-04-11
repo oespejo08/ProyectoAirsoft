@@ -6,8 +6,8 @@ import { Linking } from 'react-native';
 import InstagramIcons from './icons/InstagramIcons';
 import FacebookIcons from './icons/FacebookIcons';
 import YoutubeIcons from './icons/YoutubeIcons';
-
-
+import ChromeIcons from './icons/ChromeIcons';
+import camposAirsofts from './CamposAirsoft';
 
 
 
@@ -29,7 +29,10 @@ const HomeScreen = ({navigation}) => {
     Linking.openURL(url).catch(err => console.error('Error al abrir el enlace:', err));
   };
 
-
+  const goToWebDirecction =(direccion) => {
+    const url = direccion;
+    Linking.openURL(url).catch(err=> console.error('Error al abir el enlace',err))
+  }
 
 
   const [partidaSeleccionada, setPartidaSeleccionada] = useState(null);
@@ -48,14 +51,7 @@ const HomeScreen = ({navigation}) => {
     console.log(`Te has apuntado a la partida de ${partida} en el campo ${partidaSeleccionada}`);
   };
 
-  const camposAirsofts = [
-    {nombre: 'MinervaCombat', ciudad:'Malaga', localizacion:'', partidas: ['Sabado','Domingo'], instagram:'minervacombat',facebook:'airsoftminervacombat'},
-    {nombre: 'ZonaZ', ciudad:'Malaga', localizacion:'', partidas: ['Sabado','Domingo'], instagram:'arturojshaw',facebook:'zonaceta',youtube:'@ZonaCetaAirsoft'},
-    {nombre: 'Kampo Lira', ciudad:'Malaga', localizacion:'', partidas: ['Sabado','Domingo'], instagram:'campolira',facebook:'campolira'},
-    
-
-
-  ]
+  
   return (
     <ScrollView style={styles.container}>
   <Header title="AirSoftApp" onLoginPress={handleLoginPress} />
@@ -76,6 +72,11 @@ const HomeScreen = ({navigation}) => {
           <TouchableOpacity onPress={() => goToYoutubeProfile(campo.youtube)}>
             <View style={styles.iconosContainer}>
             {campo.youtube && <YoutubeIcons style={styles.icono} />}
+            </View>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => goToWebDirecction(campo.direccion)}>
+            <View style={styles.iconosContainer}>
+            {campo.direccion && <ChromeIcons style={styles.icono} />}
             </View>
             </TouchableOpacity>
           
