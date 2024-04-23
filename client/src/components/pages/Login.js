@@ -28,7 +28,7 @@ export default function LogInPage() {
   const handleLogin = async (values) => {
     //console.log('Credenciales enviadas', values);
     try {
-      const response = await fetch('http://192.168.18.5:4000/login', {
+      const response = await fetch('http://127.0.0.1:4000/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

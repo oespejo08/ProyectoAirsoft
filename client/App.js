@@ -8,6 +8,7 @@ import LogInPage from './src/components/pages/Login';
 import Footer from './src/components/Footer';
 import TiendasScreen from './src/components/pages/TiendasScreen';
 import Perfil from './src/components/pages/PerfilPages';
+import DetallesCampos from './src/components/pages/DetallesCampos';
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -33,6 +34,11 @@ export default function App() {
           name="Perfil"
           component={Perfil}
           options={{title: 'Perfil'}} />
+
+          <Stack.Screen
+           name="DetallesCampos"
+          component={DetallesCampos}
+          options={{ title: 'Detalles del Campo' }} />
           
           {/* Aquí puedes agregar más pantallas y sus rutas */}
         </Stack.Navigator>

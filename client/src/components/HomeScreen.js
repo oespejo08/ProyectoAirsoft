@@ -1,7 +1,6 @@
-import React,{useState} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import Header from './Header'; // Importa el componente Header
-import { ScrollView } from 'react-native-gesture-handler';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import Header from './Header';
 import { Linking } from 'react-native';
 import InstagramIcons from './icons/InstagramIcons';
 import FacebookIcons from './icons/FacebookIcons';
@@ -9,16 +8,12 @@ import YoutubeIcons from './icons/YoutubeIcons';
 import ChromeIcons from './icons/ChromeIcons';
 import camposAirsofts from './CamposAirsoft';
 
-
-
-
-const HomeScreen = ({navigation}) => {
-
-
+const HomeScreen = ({ navigation }) => {
   const goToInstagramProfile = (perfil) => {
     const url = `https://www.instagram.com/${perfil}/`;
     Linking.openURL(url).catch(err => console.error('Error al abrir el enlace:', err));
   };
+
   const goToFacebookProfile = (perfil) => {
     const url = `https://www.facebook.com/${perfil}/`;
     Linking.openURL(url).catch(err => console.error('Error al abrir el enlace:', err));
@@ -29,16 +24,14 @@ const HomeScreen = ({navigation}) => {
     Linking.openURL(url).catch(err => console.error('Error al abrir el enlace:', err));
   };
 
-  const goToWebDirecction =(direccion) => {
+  const goToWebDirecction = (direccion) => {
     const url = direccion;
-    Linking.openURL(url).catch(err=> console.error('Error al abir el enlace',err))
+    Linking.openURL(url).catch(err => console.error('Error al abir el enlace', err))
   }
-
 
   const [partidaSeleccionada, setPartidaSeleccionada] = useState(null);
 
   const handleLoginPress = () => {
-    // Navega a la pantalla de inicio de sesión al hacer clic en el icono de login
     navigation.navigate('Login');
   };
 
@@ -47,75 +40,95 @@ const HomeScreen = ({navigation}) => {
   };
 
   const handleApuntarse = (partida) => {
-    // Lógica para apuntarse a la partida seleccionada
     console.log(`Te has apuntado a la partida de ${partida} en el campo ${partidaSeleccionada}`);
   };
 
-  
+  const camposPorCiudad = {};
+  camposAirsofts.forEach(campo => {
+    if (!camposPorCiudad[campo.ciudad]) {
+      camposPorCiudad[campo.ciudad] = [];
+    }
+    camposPorCiudad[campo.ciudad].push(campo);
+  });
+
+  const handleVerDetalles = (campo) => {
+    navigation.navigate('DetallesCampos', { campoSeleccionado: campo });
+  };
+
   return (
-    <ScrollView style={styles.container}>
-  <Header title="AirSoftApp" onLoginPress={handleLoginPress} />
-  {camposAirsofts.map((campo, index) => (
-    <View key={index} style={styles.camposContainer}>
-      <TouchableOpacity onPress={() => {handlePartidaPress(campo.nombre);}}>
-        <View style={styles.iconosContainer}>
-          <TouchableOpacity onPress={() => goToInstagramProfile(campo.instagram)}>
-            <View style ={styles.iconosContainer}>
-            <InstagramIcons style={styles.icono} />
+    <ScrollView contentContainerStyle={styles.container}>
+      <Header title="AirSoftApp" onLoginPress={handleLoginPress} />
+      {Object.entries(camposPorCiudad).map(([ciudad, campos], index) => (
+        <View key={index} style={styles.ciudadContainer}>          
+          <ScrollView horizontal={true}>
+            <View style={{ flexDirection: 'row' }}>
+              {campos.map((campo, index) => (
+                <View key={index} style={styles.camposContainer}>
+                  <TouchableOpacity onPress={() => { handlePartidaPress(campo.nombre); }}>
+                    
+                    <View style={styles.iconosContainer}>
+                      <TouchableOpacity onPress={() => goToInstagramProfile(campo.instagram)}>
+                        <View style={styles.iconosContainer}>
+                          <InstagramIcons style={styles.icono} />
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => goToFacebookProfile(campo.facebook)}>
+                        <View style={styles.iconosContainer}>
+                          <FacebookIcons style={styles.icono} />
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => goToYoutubeProfile(campo.youtube)}>
+                        <View style={styles.iconosContainer}>
+                          {campo.youtube && <YoutubeIcons style={styles.icono} />}
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => goToWebDirecction(campo.direccion)}>
+                        <View style={styles.iconosContainer}>
+                          {campo.direccion && <ChromeIcons style={styles.icono} />}
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                    <Text style={styles.camposNombre}>{campo.nombre}</Text>
+                    <Text style={styles.documentacion}>{campo.ciudad}</Text>
+                    <TouchableOpacity onPress={() => handleVerDetalles(campo)}>
+                      <Text style={styles.verDetallesText}>Ver detalles</Text>
+                    </TouchableOpacity>
+                      
+                  </TouchableOpacity>
+                  {partidaSeleccionada === campo.nombre && (
+                    <View style={styles.partidasContainer}>
+                      {campo.partidas.map((partida, index) => (
+                        <TouchableOpacity key={index} onPress={() => handleApuntarse(partida)}>
+                          <Text style={styles.partidaText}>Partida del {partida}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              ))}
             </View>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => goToFacebookProfile(campo.facebook)}>
-          <View style={styles.iconosContainer}>
-            <FacebookIcons style={styles.icono}/>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => goToYoutubeProfile(campo.youtube)}>
-            <View style={styles.iconosContainer}>
-            {campo.youtube && <YoutubeIcons style={styles.icono} />}
-            </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => goToWebDirecction(campo.direccion)}>
-            <View style={styles.iconosContainer}>
-            {campo.direccion && <ChromeIcons style={styles.icono} />}
-            </View>
-            </TouchableOpacity>
-          
+          </ScrollView>
         </View>
-        <Text style={styles.camposNombre}>{campo.nombre}</Text>
-        <Text style={styles.documentacion}>{campo.ciudad}</Text>
-      </TouchableOpacity>
-      {partidaSeleccionada === campo.nombre && (
-        <View style={styles.partidasContainer}>
-          {campo.partidas.map((partida, index) => (
-            <TouchableOpacity key={index} onPress={() => handleApuntarse(partida)}>
-              <Text style={styles.partidaText}>Partida del {partida}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-    </View>
-  ))}
-</ScrollView>
+      ))}
+    </ScrollView>
   );
 };
 
-
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#f0f0f0',
   },
+  ciudadContainer: {
+    marginBottom: 20,
+    
+  },
   iconosContainer: {
-    flexDirection: 'row', // Alinea los iconos en una fila
-    marginTop: 10, // Margen superior entre los iconos y el texto
+    flexDirection: 'row',
+    marginTop: 10,
   },
   icono: {
-    marginRight: 10, // Espacio entre los iconos
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginRight: 10,
   },
   camposNombre: {
     fontSize: 26,
@@ -124,15 +137,22 @@ const styles = StyleSheet.create({
     alignSelf: 'center'
   },
   camposContainer: {
+    width: 360,
     backgroundColor: '#ffffff',
     borderRadius: 10,
     padding: 10,
     marginBottom: 10,
+    marginLeft: 10,
   },
   documentacion: {
-    fontSize:16,
-    alignSelf:'flex-end',
-    fontWeight:'bold'
+    fontSize: 16,
+    alignSelf: 'flex-end',
+    fontWeight: 'bold'
+  },
+  verDetallesText: {
+    color: 'black',
+    marginTop: 5,
+    fontWeight: 'bold'
   },
   partidasContainer: {
     marginTop: 10,
@@ -142,7 +162,6 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     color: 'blue',
   },
-
 });
 
 export default HomeScreen;

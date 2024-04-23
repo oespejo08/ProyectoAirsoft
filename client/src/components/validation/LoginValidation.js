@@ -1,9 +1,9 @@
 import * as yup from 'yup'
 
 export const loginValidationSchena = yup.object().shape({
-    email: yup
+    usuario: yup
     .string()
-    .email('Escribe un mail valido')
+    .email('Escribe un usuario valido')
     .required('E-mail Requerido!!'),
 
 password: yup
