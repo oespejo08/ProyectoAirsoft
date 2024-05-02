@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker'
+import { getAuth, updateProfile } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const Perfil = () => {
   // Estado para almacenar la información del perfil
@@ -11,6 +14,21 @@ const Perfil = () => {
     ciudad: '',
     fotoPerfil: null 
   });
+
+  useEffect(()=>{
+    cargarPerfilLocalmente();
+  },[]);
+
+const cargarPerfilLocalmente = async () => {
+  try{
+    const perfilGuardado = await AsyncStorage.getItem('perfil');
+    if (perfilGuardado !== null) {
+      setPerfil(JSON.parse(perfilGuardado));
+    }
+  }catch(error){
+    console.error('Error al cargar el perfil desde Asyncstorage',error)
+  }
+}
 
   // Función para manejar el cambio en los campos de texto
   const handleChange = (field, value) => {
@@ -36,6 +54,25 @@ const Perfil = () => {
     setPerfil({...perfil, fotoPerfil: {uri: pickerResult.uri}})
   }
 }
+const guardarCambios = async () => {
+  try {
+    const auth = getAuth();
+    const usuarioActual = auth.currentUser;
+    if (usuarioActual) {
+      await updateProfile(usuarioActual, {
+        displayName: perfil.nombre,
+        photoURL: perfil.fotoPerfil ? perfil.fotoPerfil.uri : null
+      });
+      await AsyncStorage.setItem('perfil', JSON.stringify(perfil));
+      console.log('Éxito', 'Datos del perfil actualizados correctamente.');
+    } else {
+      console.log('Error', 'No hay usuario actualmente autenticado.');
+    }
+  } catch (error) {
+    console.error('Error al actualizar datos del perfil:', error);
+    console.log('Error', 'No se pudieron guardar los cambios en el perfil.');
+  }
+};
 
 
   return (
@@ -73,6 +110,9 @@ const Perfil = () => {
         value={perfil.ciudad}
         onChangeText={(text) => handleChange('ciudad', text)}
       />
+       <TouchableOpacity style={styles.saveButton} onPress={guardarCambios}>
+        <Text style={styles.saveButtonText}>Guardar cambios</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -111,6 +151,16 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 10,
+  },
+  saveButton: {
+    backgroundColor: '#525FE1',
+    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  saveButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
 

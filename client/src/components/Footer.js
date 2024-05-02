@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: '#ccc',
+    
   },
   iconContainer: {
     padding: 8,

@@ -25,6 +25,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff', // Color de fondo del header
     borderBottomWidth: 1,
     borderBottomColor: '#ccc', // Color del borde inferior del header
+    headerTintColor:'white', headerTitleAlign:'center',headerStyle:{backgroundColor:'#525FE1'}
   },
   title: {
     fontSize: 18,

@@ -7,6 +7,7 @@ import FacebookIcons from './icons/FacebookIcons';
 import YoutubeIcons from './icons/YoutubeIcons';
 import ChromeIcons from './icons/ChromeIcons';
 import camposAirsofts from './CamposAirsoft';
+import { Image } from 'react-native';
 
 const HomeScreen = ({ navigation }) => {
   const goToInstagramProfile = (perfil) => {
@@ -57,13 +58,18 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Header title="AirSoftApp" onLoginPress={handleLoginPress} />
+      <Header title="AirSoftApp" onLoginPress={handleLoginPress}/>
       {Object.entries(camposPorCiudad).map(([ciudad, campos], index) => (
         <View key={index} style={styles.ciudadContainer}>          
           <ScrollView horizontal={true}>
             <View style={{ flexDirection: 'row' }}>
               {campos.map((campo, index) => (
                 <View key={index} style={styles.camposContainer}>
+                  <Image
+                  source={campo.ImagenFondo}
+                  style={styles.campoBackgroundImage}
+                  resizeMode="cover"
+                  />
                   <TouchableOpacity onPress={() => { handlePartidaPress(campo.nombre); }}>
                     
                     <View style={styles.iconosContainer}>
@@ -147,7 +153,8 @@ const styles = StyleSheet.create({
   documentacion: {
     fontSize: 16,
     alignSelf: 'flex-end',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    
   },
   verDetallesText: {
     color: 'black',
@@ -162,6 +169,27 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     color: 'blue',
   },
+  camposContainer: {
+    width: 360,
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+    marginLeft: 10,
+    overflow: 'hidden', // Agrega esta propiedad para ocultar el exceso de imagen
+  },
+  campoBackgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 10,
+    opacity: 0.4,
+    resizeMode: 'cover',
+    flex: 1, // Añade esta propiedad para que la imagen ocupe todo el espacio disponible dentro del contenedor
+  },
+  
 });
 
 export default HomeScreen;
