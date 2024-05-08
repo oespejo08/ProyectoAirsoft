@@ -1,83 +1,105 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
-import * as ImagePicker from 'expo-image-picker'
+import * as ImagePicker from 'expo-image-picker';
 import { getAuth, updateProfile } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
-const Perfil = () => {
-  // Estado para almacenar la información del perfil
+const PerfilPage = () => {
   const [perfil, setPerfil] = useState({
     nombre: '',
     apellido: '',
     rolJuego: '',
     ciudad: '',
-    fotoPerfil: null 
+    fotoPerfil: null ,
+    dni:''
+    
   });
 
-  useEffect(()=>{
+  useEffect(() => {
     cargarPerfilLocalmente();
-  },[]);
+  }, []);
 
-const cargarPerfilLocalmente = async () => {
-  try{
-    const perfilGuardado = await AsyncStorage.getItem('perfil');
-    if (perfilGuardado !== null) {
-      setPerfil(JSON.parse(perfilGuardado));
+  useEffect(() => {
+    const checkUserLoggedIn = async () => {
+      try {
+        const userLoggedIn = await AsyncStorage.getItem('userLoggedIn');
+        if (userLoggedIn !== 'true') {
+          console.log('El usuario no está autenticado');
+          // Redirige al usuario a la pantalla de inicio de sesión
+          // Aquí debes tener la lógica para la navegación a la pantalla de inicio de sesión
+        }
+      } catch (error) {
+        console.error('Error al verificar si el usuario está autenticado:', error);
+      }
+    };
+  
+    checkUserLoggedIn();
+  }, []);
+
+  const cargarPerfilLocalmente = async () => {
+    try {
+      const auth = getAuth();
+      const usuarioActual = auth.currentUser;
+      if (usuarioActual) {
+        const clavePerfil = `perfil_${usuarioActual.uid}`;
+        const perfilGuardado = await AsyncStorage.getItem(clavePerfil);
+        if (perfilGuardado !== null) {
+          setPerfil(JSON.parse(perfilGuardado));
+        }
+      } else {
+        console.log('Error', 'No hay usuario actualmente autenticado.');
+      }
+    } catch (error) {
+      console.error('Error al cargar el perfil desde AsyncStorage:', error);
     }
-  }catch(error){
-    console.error('Error al cargar el perfil desde Asyncstorage',error)
-  }
-}
+  };
 
-  // Función para manejar el cambio en los campos de texto
   const handleChange = (field, value) => {
     setPerfil({ ...perfil, [field]: value });
   };
 
-  // Función para manejar la selección de una imagen para el perfil
   const handleSelectImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (permissionResult.granted === false) {
-    alert('Se necesita permiso para acceder a la galería de imágenes.');
-    return;
-  }
-
-  const pickerResult = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,
-    aspect: [1,1],
-    quality:1,
-  })
-
-  if (!pickerResult.cancelled) {
-    setPerfil({...perfil, fotoPerfil: {uri: pickerResult.uri}})
-  }
-}
-const guardarCambios = async () => {
-  try {
-    const auth = getAuth();
-    const usuarioActual = auth.currentUser;
-    if (usuarioActual) {
-      await updateProfile(usuarioActual, {
-        displayName: perfil.nombre,
-        photoURL: perfil.fotoPerfil ? perfil.fotoPerfil.uri : null
-      });
-      await AsyncStorage.setItem('perfil', JSON.stringify(perfil));
-      console.log('Éxito', 'Datos del perfil actualizados correctamente.');
-    } else {
-      console.log('Error', 'No hay usuario actualmente autenticado.');
+    if (permissionResult.granted === false) {
+      alert('Se necesita permiso para acceder a la galería de imágenes.');
+      return;
     }
-  } catch (error) {
-    console.error('Error al actualizar datos del perfil:', error);
-    console.log('Error', 'No se pudieron guardar los cambios en el perfil.');
-  }
-};
 
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!pickerResult.cancelled) {
+      setPerfil({...perfil, fotoPerfil: { uri: pickerResult.uri }});
+    }
+  };
+
+  const guardarCambios = async () => {
+    try {
+      const auth = getAuth();
+      const usuarioActual = auth.currentUser;
+      if (usuarioActual) {
+        await updateProfile(usuarioActual, {
+          displayName: perfil.nombre,
+          photoURL: perfil.fotoPerfil ? perfil.fotoPerfil.uri : null
+        });
+        const clavePerfil = `perfil_${usuarioActual.uid}`;
+        await AsyncStorage.setItem(clavePerfil, JSON.stringify(perfil));
+        console.log('Éxito', 'Datos del perfil actualizados correctamente.');
+      } else {
+        console.log('Error', 'No hay usuario actualmente autenticado.');
+      }
+    } catch (error) {
+      console.error('Error al actualizar datos del perfil:', error);
+      console.log('Error', 'No se pudieron guardar los cambios en el perfil.');
+    }
+  };
 
   return (
     <View style={styles.container}>
-      {/* Marco redondo para la foto de perfil */}
       <TouchableOpacity style={styles.photoContainer} onPress={handleSelectImage}>
         {perfil.fotoPerfil ? (
           <Image source={perfil.fotoPerfil} style={styles.photo} />
@@ -85,7 +107,6 @@ const guardarCambios = async () => {
           <Text style={styles.addPhotoText}>Añadir foto de perfil</Text>
         )}
       </TouchableOpacity>
-      {/* Campos de texto para el nombre, apellido, rol de juego y ciudad */}
       <TextInput
         style={styles.input}
         placeholder="Nombre"
@@ -109,6 +130,12 @@ const guardarCambios = async () => {
         placeholder="Ciudad"
         value={perfil.ciudad}
         onChangeText={(text) => handleChange('ciudad', text)}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Dni"
+        value={perfil.dni}
+        onChangeText={(text) => handleChange('dni', text)}
       />
        <TouchableOpacity style={styles.saveButton} onPress={guardarCambios}>
         <Text style={styles.saveButtonText}>Guardar cambios</Text>
@@ -164,4 +191,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Perfil;
+export default PerfilPage;

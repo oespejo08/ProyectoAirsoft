@@ -1,198 +1,175 @@
-import React, { useState } from 'react';
-import { Button, StyleSheet, View, Text, Image, TextInput ,TouchableOpacity, Alert} from 'react-native';
-import appFirebase from '../../../credenciales';
-import {getAuth,signInWithEmailAndPassword} from 'firebase/auth'
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, getReactNativePersistence } from '@firebase/auth';
+import firebaseApp from '../../../credenciales';
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+
+// Utiliza una variable para almacenar la referencia de initializeAuth
+const auth = getAuth(firebaseApp, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+});
+
+const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogin, handleAuthentication }) => {
+  return (
+    <View style={styles.authContainer}>
+       <Text style={styles.title}>{isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}</Text>
+
+       <TextInput
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        placeholder="Correo electrónico"
+        autoCapitalize="none"
+      />
+      <TextInput
+        style={styles.input}
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Contraseña"
+        secureTextEntry
+      />
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.button} onPress={handleAuthentication}>
+          <Text style={styles.buttonText}>{isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.bottomContainer}>
+        <Text style={styles.toggleText} onPress={() => setIsLogin(!isLogin)}>
+          {isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes una cuenta? Inicia Sesión'}
+        </Text>
+      </View>
+    </View>
+  );
+}
 
 
+const AuthenticatedScreen = ({ user, handleAuthentication }) => {
+  return (
+    <View style={styles.authContainer}>
+      <Text style={styles.title}>Bienvenido</Text>
+      <Text style={styles.emailText}>{user.email}</Text>
+      <TouchableOpacity style={styles.button} onPress={handleAuthentication}>
+        <Text style={styles.buttonText}>Cerrar Sesión</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [user, setUser] = useState(null); // Track user authentication state
+  const [isLogin, setIsLogin] = useState(true);
 
-export default function LogInPage(props) {
-  const auth = getAuth(appFirebase);
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
 
+    return () => unsubscribe();
+  }, []);
 
-   const handleSubmit = async () => {
+  
+  const handleAuthentication = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      Alert.alert('Iniciando sesión', 'Accediendo...');
-      props.navigation.navigate('Home');
+      if (user) {
+        // If user is already authenticated, log out
+        console.log('User logged out successfully!');
+        await signOut(auth);
+      } else {
+        // Sign in or sign up
+        if (isLogin) {
+          // Sign in
+          await signInWithEmailAndPassword(auth, email, password);
+          console.log('User signed in successfully!');
+        } else {
+          // Sign up
+          await createUserWithEmailAndPassword(auth, email, password);
+          console.log('User created successfully!');
+        }
+      }
     } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Error al iniciar sesión. Por favor, inténtalo de nuevo.');
+      console.error('Authentication error:', error.message);
+      Alert.alert('Error', 'Error de autenticación. Por favor, inténtalo de nuevo.');
     }
   };
 
-  // const handleSubmit = async () => {
-  //   try {
-  //     // Configurar persistencia de autenticación
-  //     await auth.setPersistence('local');
-  //     // Iniciar sesión con correo electrónico y contraseña
-  //     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-  //     const user = userCredential.user;
-  //     // Actualizar datos del perfil si es necesario
-  //     const displayName = user.displayName;
-  //     if (!displayName) {
-  //       await updateProfile(user, {
-  //         displayName: 'Nombre de usuario' // Puedes establecer un nombre de usuario predeterminado si el usuario no tiene uno
-  //       });
-  //     }
-  //     // Guardar el ID del usuario en el almacenamiento local
-  //     await AsyncStorage.setItem('userId', user.uid);
-  //     // Navegar a la página de inicio después del inicio de sesión exitoso
-  //     props.navigation.navigate('Home');
-  //   } catch (error) {
-  //     console.error(error);
-  //     Alert.alert('Error', 'Error al iniciar sesión. Por favor, inténtalo de nuevo.');
-  //   }
-  // };
-
-  return(
-    <View style={styles.padre}>
-      <View>
-        <Image source={require('../../../assets/iconoLogin.jpg')} style={styles.profile} />
-      </View>
-      <View style={styles.tarjeta}>
-        <View style={styles.cajaTexto}>
-          
-        <TextInput
-        placeholder='correo@gmail.com' style={{paddingHorizontal:15}}
-        onChangeText={(text)=>setEmail(text)}
-         />
-        </View>
-        <View style={styles.cajaTexto}>
-          
-        <TextInput
-        placeholder='password' style={{paddingHorizontal:15}} 
-        onChangeText={(text)=>setPassword(text)}
-        secureTextEntry={true}
-         />
-        </View>
-        <View styles={styles.PadreBoton}>
-          <TouchableOpacity style={styles.cajaBoton} onPress={handleSubmit}>
-            <Text style={styles.TextoBoton}>Iniciar Sesion</Text>
-          </TouchableOpacity>
-        </View>
-
-
-      </View>
-
-
-
-
-    </View>
-  )
-
-//   const handleLogin = async (values) => {
-//     //console.log('Credenciales enviadas', values);
-//     try {
-//       const response = await fetch('http://127.0.0.1:4000/login', {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify(values)
-//       });
-
-//       const data = await response.json();
-//       console.log(data);
-
-//       if (response.status === 200) {
-//         await AsyncStorage.setItem('token', data.token)
-//         navigation.navigate('Profile');
-//       }
-//     } catch (error) {
-//       console.error('Error al iniciar sesión:', error);
-//       setError('Error al iniciar sesión. Por favor, intenta de nuevo.'); // Mostrar mensaje de error genérico
-//     }
-//   };
-
-//   return (
-//     <Formik 
-//       validationSchema={loginValidationSchena}
-//       initialValues={initialValues}
-//       onSubmit={handleLogin}
-//     >
-//       {({  handleSubmit, errors }) => (
-//         <View>
-//           <FormikInputValue
-//             name='email'
-//             placeholder='E-mail'
-            
-//           />
-//           {errors.email && <Text style={styles.error}>{errors.email}</Text>}
-//           <FormikInputValue
-            
-//             name='password'
-//             placeholder='Password'
-//             secureTextEntry
-//           />
-//           {errors.password && <Text style={styles.error}>{errors.password}</Text>}
-
-//           <Button onPress={handleSubmit} title='Iniciar Sesión'></Button>
-//         </View>
-//       )}
-//     </Formik>
-//   );
- }
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      {user ? (
+        // Show user's email if user is authenticated
+        <AuthenticatedScreen user={user} handleAuthentication={handleAuthentication} />
+      ) : (
+        // Show sign-in or sign-up form if user is not authenticated
+        <AuthScreen
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          isLogin={isLogin}
+          setIsLogin={setIsLogin}
+          handleAuthentication={handleAuthentication}
+        />
+      )}
+    </ScrollView>
+  );
+}
 
 const styles = StyleSheet.create({
-  error: {
-    color: 'red'
+  container: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#ffffff',
   },
-  form: {
-    margin: 12
+  authContainer: {
+    width: '80%',
+    maxWidth: 400,
+    backgroundColor: '#ffffff',
+    padding: 16,
+    borderRadius: 8,
+    elevation: 3,
   },
-  padre:{
-
-    flex:1,
-    justifyContent:'center',
-    alignItems:'center',
-    backgroundColor:'white'
+  title: {
+    fontSize: 24,
+    marginBottom: 16,
+    textAlign: 'center',
+    color: '#333333',
   },
-  
-  profile: {
-    width:100,
-    height:100,
-    borderRadius:50,
-    borderColor:'white'
+  input: {
+    height: 40,
+    borderColor: '#dddddd',
+    borderWidth: 1,
+    marginBottom: 16,
+    padding: 8,
+    borderRadius: 4,
   },
-  tarjeta:{
-    margin:20,
-    backgroundColor:'white',
-    borderRadius:20,
-    width:'90%',
-    padding:20,
-    shadowColor:'#000',
-    shadowOffset:{
-      width:0,
-      height:2,
-    },
-    shadowOpacity:0.25,
-    shadowRadius:4,
-    elevation:5,
-
+  buttonContainer: {
+    marginBottom: 16,
   },
-  cajaTexto:{
-    paddingVertical:20,
-    backgroundColor:'#cccccc50',
-    borderRadius:30,
-    marginVertical:10
+  button: {
+    backgroundColor: '#3498db',
+    padding: 10,
+    borderRadius: 5,
   },
-  PadreBoton:{
-    alignItems:'center',
-
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
-  cajaBoton:{
-    backgroundColor:'#525FE1',
-    borderRadius:30,
-    paddingVertical:20,
-    widh:150,
-    marginTop:20
+  toggleText: {
+    color: '#3498db',
+    textAlign: 'center',
   },
-  TextoBoton:{
-    textAlign:'center',
-    color:'white'
-  }
-
+  bottomContainer: {
+    marginTop: 20,
+  },
+  emailText: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
 });
