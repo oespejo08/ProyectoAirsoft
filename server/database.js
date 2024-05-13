@@ -11,6 +11,8 @@ const pool = mysql.createPool({
     database: process.env.MYSQL_DATABASE
 });
 
+export {pool} ;
+
 // Intenta conectarte a la base de datos
 pool.getConnection((err, connection) => {
     if (err) {
@@ -30,6 +32,20 @@ pool.getConnection((err, connection) => {
     }
 });
 
+export async function createUser(usuario, password) {
+    try {
+        const [result] = await pool.query(
+            'INSERT INTO Users (Usuario, Password) VALUES (?, ?)',
+            [usuario, password]
+        );
+        console.log('Usuario creado con éxito. ID:', result.insertId);
+        return result.insertId;
+    } catch (error) {
+        console.error('Error al crear el usuario:', error);
+        throw error;
+    }
+}
+
 // Función para obtener un administrador por su ID
 export async function getAdministadorById(id) {
     try {
@@ -41,20 +57,20 @@ export async function getAdministadorById(id) {
     }
 }
 
-// Función para crear un usuario y añadirlo a la tabla Users
-export async function createUser(usuario, password, nombre, apellido, dni, email) {
-    try {
-        const [result] = await pool.query(
-            'INSERT INTO Users (Usuario, Password, Nombre, Apellido, DNI, Email) VALUES (?, ?, ?, ?, ?, ?)',
-            [usuario, password, nombre, apellido, dni, email]
-        );
-        console.log('Usuario creado con éxito. ID:', result.insertId);
-        return result.insertId;
-    } catch (error) {
-        console.error('Error al crear el usuario:', error);
-        throw error;
-    }
-}
+// // Función para crear un usuario y añadirlo a la tabla Users
+// export async function createUser(usuario, password, nombre, apellido, dni, email) {
+//     try {
+//         const [result] = await pool.query(
+//             'INSERT INTO Users (Usuario, Password, Nombre, Apellido, DNI, Email) VALUES (?, ?, ?, ?, ?, ?)',
+//             [usuario, password, nombre, apellido, dni, email]
+//         );
+//         console.log('Usuario creado con éxito. ID:', result.insertId);
+//         return result.insertId;
+//     } catch (error) {
+//         console.error('Error al crear el usuario:', error);
+//         throw error;
+//     }
+// }
 
 // Función para cambiar la contraseña de un usuario
 export async function changePassword(usuario, nuevaPassword) {

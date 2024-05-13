@@ -9,7 +9,10 @@ import ChromeIcons from './icons/ChromeIcons';
 import camposAirsofts from './CamposAirsoft';
 import { Image } from 'react-native';
 
-const HomeScreen = ({ navigation }) => {
+
+const HomeScreen = ({ navigation, route }) => {
+  const {datosPerfil} = route.params || {};
+  
   const goToInstagramProfile = (perfil) => {
     const url = `https://www.instagram.com/${perfil}/`;
     Linking.openURL(url).catch(err => console.error('Error al abrir el enlace:', err));
@@ -40,9 +43,31 @@ const HomeScreen = ({ navigation }) => {
     setPartidaSeleccionada(prevSeleccion => prevSeleccion === nombreCampo ? null : nombreCampo);
   };
 
-  const handleApuntarse = (partida) => {
-    console.log(`Te has apuntado a la partida de ${partida} en el campo ${partidaSeleccionada}`);
+  const handleApuntarse = async (datosPerfil,partida) => {
+    try {
+      console.log(datosPerfil,partida);  // Verificar qué datos llegan a HomeScreen
+      const response = await fetch(`http://192.168.56.1:4000/partidas/minervacombat/${partida}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nombre: datosPerfil.nombre,
+          apellido: datosPerfil.apellido,
+          dni: datosPerfil.dni,
+        }),
+      });
+  
+      if (response.ok) {
+        console.log('¡Te has apuntado correctamente a la partida!');
+      } else {
+        console.error('Error al apuntarse a la partida:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error al realizar la solicitud:', error);
+    }
   };
+  
 
   const camposPorCiudad = {};
   camposAirsofts.forEach(campo => {
@@ -103,8 +128,9 @@ const HomeScreen = ({ navigation }) => {
                   </TouchableOpacity>
                   {partidaSeleccionada === campo.nombre && (
                     <View style={styles.partidasContainer}>
+                     
                       {campo.partidas.map((partida, index) => (
-                        <TouchableOpacity key={index} onPress={() => handleApuntarse(partida)}>
+                        <TouchableOpacity key={index} onPress={() => handleApuntarse(datosPerfil,partida)}>
                           <Text style={styles.partidaText}>Partida del {partida}</Text>
                         </TouchableOpacity>
                       ))}

@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'reac
 import * as ImagePicker from 'expo-image-picker';
 import { getAuth, updateProfile } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import HomeScreen from '../HomeScreen';
 
-const PerfilPage = () => {
+const PerfilPage = ({navigation}) => {
+  
   const [perfil, setPerfil] = useState({
     nombre: '',
     apellido: '',
@@ -35,6 +37,9 @@ const PerfilPage = () => {
   
     checkUserLoggedIn();
   }, []);
+
+  
+  
 
   const cargarPerfilLocalmente = async () => {
     try {
@@ -89,6 +94,8 @@ const PerfilPage = () => {
         const clavePerfil = `perfil_${usuarioActual.uid}`;
         await AsyncStorage.setItem(clavePerfil, JSON.stringify(perfil));
         console.log('Éxito', 'Datos del perfil actualizados correctamente.');
+        console.log(perfil);
+        navigation.navigate('Home', { datosPerfil: perfil });
       } else {
         console.log('Error', 'No hay usuario actualmente autenticado.');
       }
@@ -140,6 +147,9 @@ const PerfilPage = () => {
        <TouchableOpacity style={styles.saveButton} onPress={guardarCambios}>
         <Text style={styles.saveButtonText}>Guardar cambios</Text>
       </TouchableOpacity>
+     
+      
+      
     </View>
   );
 };

@@ -25,12 +25,25 @@ CREATE TABLE CamposJuego (
 CREATE TABLE Partidas_MinervaCombat (
     ID INTEGER PRIMARY KEY AUTO_INCREMENT,
     CampoID INTEGER NOT NULL,
+    Dia VARCHAR(20) NOT NULL, -- Nuevo campo para indicar el día o festivo
     Fecha TEXT NOT NULL,
     Estado VARCHAR(20) NOT NULL DEFAULT 'Activa',
-    FOREIGN KEY (CampoID) REFERENCES CamposJuego(ID),
     ListaActiva BOOLEAN NOT NULL DEFAULT TRUE,
-    COLUMN AdministradorID INTEGER NOT NULL,
-    FOREIGN KEY (AdministradorID) REFERENCES Administradores(ID);
+    AdministradorID INTEGER NOT NULL,
+    FOREIGN KEY (CampoID) REFERENCES CamposJuego(ID),
+    FOREIGN KEY (AdministradorID) REFERENCES Administradores(ID)
+);
+CREATE TABLE ListaPartida_MinervaCombat (
+    ID INTEGER PRIMARY KEY AUTO_INCREMENT,
+    PartidaID INTEGER NOT NULL,
+    DiaPartida VARCHAR(20) NOT NULL, -- Nuevo campo para indicar el día de la partida
+    JugadorID INTEGER NOT NULL,
+    NombreJugador TEXT NOT NULL,
+    ApellidoJugador TEXT NOT NULL,
+    DNIJugador VARCHAR(9) NOT NULL,
+    RolJugador TEXT NOT NULL,
+    FOREIGN KEY (PartidaID) REFERENCES Partidas_MinervaCombat(ID),
+    FOREIGN KEY (JugadorID) REFERENCES Users(ID)
 );
 
 CREATE TABLE Partidas_ZonaZ (
