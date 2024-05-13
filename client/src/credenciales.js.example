@@ -1,0 +1,14 @@
+ Aqui debereis de configurar vuestro propio archivo de firebaseConfig
+ 
+ credenciales.js.example
+
+const firebaseConfig = {
+  apiKey: "tu-clave-de-api-aqui",
+  authDomain: "tu-auth-domain-aqui",
+  projectId: "tu-project-id-aqui",
+  storageBucket: "tu-storage-bucket-aqui",
+  messagingSenderId: "tu-messaging-sender-id-aqui",
+  appId: "tu-app-id-aqui"
+};
+
+export default firebaseConfig;
