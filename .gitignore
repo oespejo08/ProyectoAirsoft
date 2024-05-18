@@ -1,3 +1,4 @@
 node_modules
-.env
-credenciales.js
+server/.env
+client/credenciales.js
+server/schema.sql

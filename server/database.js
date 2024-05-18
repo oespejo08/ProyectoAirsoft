@@ -46,6 +46,16 @@ export async function createUser(usuario, password) {
     }
 }
 
+export async function findJugadorApuntado(DNIJUGADOR,DiaPartida){
+    try{
+        const [rows] = await pool.query('SELECT * FROM ListaPartida_MinervaCombat WHERE DNIJUGADOR=? AND DiaPartida=?',[DNIJUGADOR,DiaPartida])
+        return rows[0];
+    }catch (error) {
+        console.error('Error al obtener los datos:', error);
+        throw error;
+    }
+}
+
 // Función para obtener un administrador por su ID
 export async function getAdministadorById(id) {
     try {
@@ -56,6 +66,21 @@ export async function getAdministadorById(id) {
         throw error;
     }
 }
+
+export async function getDatosUsers(email){
+    try{
+        const [rows] = await pool.query('SELECT * FROM Users WHERE email = ?', [email]);
+        return rows[0]; // Devuelve el primer usuario encontrado por el email o null
+    }catch(error){
+        console.error('Error al obtener los datos por email:', error)
+        throw error;
+    }
+}
+
+
+
+
+
 
 // // Función para crear un usuario y añadirlo a la tabla Users
 // export async function createUser(usuario, password, nombre, apellido, dni, email) {

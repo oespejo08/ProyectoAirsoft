@@ -43,30 +43,53 @@ const HomeScreen = ({ navigation, route }) => {
     setPartidaSeleccionada(prevSeleccion => prevSeleccion === nombreCampo ? null : nombreCampo);
   };
 
-  const handleApuntarse = async (datosPerfil,partida) => {
-    try {
-      console.log(datosPerfil,partida);  // Verificar qué datos llegan a HomeScreen
-      const response = await fetch(`http://192.168.56.1:4000/partidas/minervacombat/${partida}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nombre: datosPerfil.nombre,
-          apellido: datosPerfil.apellido,
-          dni: datosPerfil.dni,
-        }),
-      });
   
-      if (response.ok) {
-        console.log('¡Te has apuntado correctamente a la partida!');
-      } else {
-        console.error('Error al apuntarse a la partida:', response.statusText);
-      }
+
+  const handleApuntarse = async (datosPerfil, partida) => {
+    try {
+      console.log('Datos del perfil a enviar:', datosPerfil);
+        // Verificar si el jugador ya está apuntado
+        const checkResponse = await fetch(`http://192.168.56.1:4000/partidas/minervacombat/Apuntado/${datosPerfil.dniJugador}/${partida}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (checkResponse.ok) {
+            const jugadorApuntado = await checkResponse.json();
+            alert('El jugador ya está apuntado.');
+        } else if (checkResponse.status === 404) {
+            const errorData = await checkResponse.json();
+            if (errorData.message === 'Usuario no encontrado') {
+                // Si la respuesta es 404 y el mensaje es 'Usuario no encontrado', proceder con el registro
+                const response = await fetch(`http://192.168.56.1:4000/partidas/minervacombat/${partida}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        nombre: datosPerfil.nombre,
+                        apellido: datosPerfil.apellido,
+                        dniJugador: datosPerfil.dniJugador,
+                    }),
+                });
+
+                if (response.ok) {
+                    console.log('¡Te has apuntado correctamente a la partida!');
+                } else {
+                    console.error('Error al apuntarse a la partida:', response.statusText);
+                }
+            } else {
+                console.error('Error desconocido al verificar el usuario:', errorData.message);
+            }
+        } else {
+            console.error('Error al verificar si el jugador está apuntado:', checkResponse.statusText);
+        }
     } catch (error) {
-      console.error('Error al realizar la solicitud:', error);
+        console.error('Error al realizar la solicitud:', error);
     }
-  };
+};
   
 
   const camposPorCiudad = {};
@@ -78,7 +101,7 @@ const HomeScreen = ({ navigation, route }) => {
   });
 
   const handleVerDetalles = (campo) => {
-    navigation.navigate('DetallesCampos', { campoSeleccionado: campo });
+    navigation.navigate('DetallesCampos', { campoSeleccionado: campo, dniJugador:datosPerfil.dniJugador, datosPerfil: datosPerfil });
   };
 
   return (

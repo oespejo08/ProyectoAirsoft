@@ -13,12 +13,13 @@ const PerfilPage = ({navigation}) => {
     rolJuego: '',
     ciudad: '',
     fotoPerfil: null ,
-    dni:''
+    dniJugador:''
     
   });
 
   useEffect(() => {
     cargarPerfilLocalmente();
+    cargarPerfilRemotamente(); // Agregamos la carga de perfil remoto al montar el componente
   }, []);
 
   useEffect(() => {
@@ -29,6 +30,8 @@ const PerfilPage = ({navigation}) => {
           console.log('El usuario no está autenticado');
           // Redirige al usuario a la pantalla de inicio de sesión
           // Aquí debes tener la lógica para la navegación a la pantalla de inicio de sesión
+        }else{
+          cargarPerfilRemotamente();
         }
       } catch (error) {
         console.error('Error al verificar si el usuario está autenticado:', error);
@@ -57,6 +60,42 @@ const PerfilPage = ({navigation}) => {
     } catch (error) {
       console.error('Error al cargar el perfil desde AsyncStorage:', error);
     }
+  };
+
+  const cargarPerfilRemotamente = async () => {
+    try {
+      const auth = getAuth();
+      const usuarioActual = auth.currentUser;
+      if (usuarioActual) {
+        const response = await fetch(`http://192.168.56.1:4000/usuarios/${usuarioActual.email}/perfil`, {
+            method: 'GET',
+            headers: {'Content-Type': 'application/json'
+  }
+})
+        if (response.ok) {
+          const datosUsuario = await response.json();
+          console.log('datos del perfil recibidos:', datosUsuario);
+         
+         setPerfil(prevPerfil => ({
+          ...prevPerfil,
+            nombre: datosUsuario.nombre  || prevPerfil.nombre,
+            Apellido: datosUsuario.apellido || prevPerfil.apellido,
+            rolJuego: datosUsuario.rolJuego || prevPerfil.rolJuego,
+            ciudad: datosUsuario.ciudad || prevPerfil.ciudad,
+            fotoPerfil: perfil.fotoPerfil || prevPerfil.fotoPerfil, // Mantenemos la foto de perfil si ya se seleccionó una
+            dniJugador: datosUsuario.DNIJUGADOR || prevPerfil.dniJugador
+          
+         }));
+        } else {
+          console.error('Error al cargar el perfil desde el servidor:', response.statusText);
+        }
+      } else {
+        console.log('Error', 'No hay usuario actualmente autenticado.');
+      }
+    } catch (error) {
+      console.error('Error al cargar el perfil desde el servidor:', error);
+    }
+    
   };
 
   const handleChange = (field, value) => {
@@ -91,6 +130,28 @@ const PerfilPage = ({navigation}) => {
           displayName: perfil.nombre,
           photoURL: perfil.fotoPerfil ? perfil.fotoPerfil.uri : null
         });
+
+        // Actualizar datos en MySQL
+        const response = await fetch(`http://192.168.56.1:4000/usuarios/${usuarioActual.email}/perfil`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            nombre: perfil.nombre,
+            apellido: perfil.apellido,
+            dniJugador: perfil.dniJugador,
+            email: usuarioActual.email
+          })
+        });
+        console.log(perfil.dniJugador);
+
+        if (response.ok) {
+          console.log('Éxito', 'Datos del perfil actualizados correctamente en MySQL.');
+        } else {
+          console.error('Error', 'No se pudieron guardar los cambios en el perfil en MySQL.');
+        }
+
         const clavePerfil = `perfil_${usuarioActual.uid}`;
         await AsyncStorage.setItem(clavePerfil, JSON.stringify(perfil));
         console.log('Éxito', 'Datos del perfil actualizados correctamente.');
@@ -103,7 +164,8 @@ const PerfilPage = ({navigation}) => {
       console.error('Error al actualizar datos del perfil:', error);
       console.log('Error', 'No se pudieron guardar los cambios en el perfil.');
     }
-  };
+};
+
 
   return (
     <View style={styles.container}>
@@ -141,8 +203,8 @@ const PerfilPage = ({navigation}) => {
       <TextInput
         style={styles.input}
         placeholder="Dni"
-        value={perfil.dni}
-        onChangeText={(text) => handleChange('dni', text)}
+        value={perfil.dniJugador}
+        onChangeText={(text) => handleChange('dniJugador', text)}
       />
        <TouchableOpacity style={styles.saveButton} onPress={guardarCambios}>
         <Text style={styles.saveButtonText}>Guardar cambios</Text>

@@ -1,7 +1,9 @@
 import express from 'express';
 import cors from 'cors';
-import { createUser, getUserByUsernameAndPassword, pool } from './database.js';
+import { createUser, getUserByUsernameAndPassword, pool, getDatosUsers,findJugadorApuntado } from './database.js';
 import jwt from 'jsonwebtoken';
+
+
 
 
 const app = express();
@@ -25,6 +27,67 @@ const JWT_SECRET = process.env.JWT_SECRET || 'mi_clave_secreta_por_defecto';
 app.get('/hello', (req, res) => {
     res.send('¡Hola, mundo!');
 });
+
+app.get('/partidas/minervacombat/Apuntado/:DNIJUGADOR/:diaPartida', async (req, res)=> {
+    const {DNIJUGADOR,diaPartida} = req.params
+    try{
+        //Llama a la funcion findJugadorApuntado para obtener los datos del jugador si esta apuntado a la lista
+        const jugadorApuntado = await findJugadorApuntado(DNIJUGADOR,diaPartida);
+        if(jugadorApuntado) {
+             // Si se encuentran los datos del usuario, responde con los datos del usuario
+             res.status(200).json(jugadorApuntado);
+        }else {
+            // Si no se encuentran los datos del usuario, responde con un mensaje de error
+            res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+    }catch {
+        // Si ocurre un error durante la consulta, responde con un mensaje de error
+        console.error('Error al obtener los datos del perfil del usuario:', error);
+        res.status(500).json({ message: 'Error al obtener los datos del perfil del usuario' });
+
+    }
+})
+
+app.get('/usuarios/:email/perfil', async (req, res) => {
+    const { email } = req.params; // Obtiene el correo electrónico del parámetro de la URL
+
+    try {
+        // Llama a la función getDatosUsers para obtener los datos del perfil del usuario
+        const datosUsuario = await getDatosUsers(email);
+
+        if (datosUsuario) {
+            // Si se encuentran los datos del usuario, responde con los datos del perfil
+            res.status(200).json(datosUsuario);
+        } else {
+            // Si no se encuentran los datos del usuario, responde con un mensaje de error
+            res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+    } catch (error) {
+        // Si ocurre un error durante la consulta, responde con un mensaje de error
+        console.error('Error al obtener los datos del perfil del usuario:', error);
+        res.status(500).json({ message: 'Error al obtener los datos del perfil del usuario' });
+    }
+});
+
+
+app.delete('/usuario/listaPartida/:dniJugador/:diaPartida', async (req, res) => {
+    const {dniJugador,diaPartida} = req.params;
+    
+    try {
+      // Eliminar el usuario de MySQL utilizando el DNI
+      const [results] = await pool.query('DELETE FROM ListaPartida_MinervaCombat WHERE dniJugador = ? AND DiaPartida=?', [dniJugador,diaPartida]);
+      console.log(dniJugador)
+  
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      res.status(200).json({ message: 'User deleted successfully' });
+    } catch (err) {
+      console.error('Error deleting user from MySQL:', err);
+      res.status(500).json({ message: 'Error deleting user from MySQL', error: err });
+    }
+  });
 
 
 app.post('/usuarios', async (req, res) => {
@@ -68,25 +131,29 @@ app.post('/login', async (req, res) => {
     }
 });
 app.put('/usuarios/:correo/perfil', async (req, res) => {
-    const { nombre, apellido, dni, email } = req.body;
+    const { nombre, apellido, dniJugador, email } = req.body;
     const { correo } = req.params;
-
+  
     try {
-        const sql = `UPDATE Users SET Nombre = ?, Apellido = ?, DNI = ?, Email = ? WHERE Usuario = ?`;
-        const values = [nombre, apellido, dni, email, correo];
-        await pool.query(sql, values);
-        res.status(200).json({ message: 'Perfil actualizado correctamente' });
+      const sql = `UPDATE Users SET Nombre = ?, Apellido = ?, dniJugador = ?, Email = ? WHERE Email = ?`;
+      const values = [nombre, apellido, dniJugador, email, correo];
+      await pool.query(sql, values);
+  
+      res.status(200).json({ message: 'Perfil actualizado correctamente' });
     } catch (error) {
-        console.error('Error al actualizar el perfil del usuario:', error);
-        res.status(500).json({ message: 'Error al actualizar el perfil del usuario' });
+      console.error('Error al actualizar el perfil del usuario:', error);
+      res.status(500).json({ message: 'Error al actualizar el perfil del usuario' });
     }
+    
 });
+
 
 app.post('/partidas/:id/jugadores', async (req, res) => {
     const { id } = req.params; // Obtener el ID de la partida
-    const { nombre, apellido, dni } = req.body; // Obtener los datos del jugador
+    const { nombre, apellido, dniJugador } = req.body; // Obtener los datos del jugador
 
     try {
+        
         // Verificar si la partida existe antes de insertar el jugador
         const partidaExiste = await pool.query('SELECT * FROM Partidas WHERE ID = ?', [id]);
 
@@ -97,7 +164,7 @@ app.post('/partidas/:id/jugadores', async (req, res) => {
         // Insertar el jugador en la tabla Partidas
         await pool.query(
             'INSERT INTO Partidas (CampoID, NombreJugador, ApellidoJugador, DNIJugador ) VALUES (?, ?, ?, ?)',
-            [id, nombre, apellido, dni]
+            [id, nombre, apellido, dniJugador]
         );
 
         res.status(201).json({ message: 'Jugador agregado correctamente a la partida' });
@@ -109,7 +176,7 @@ app.post('/partidas/:id/jugadores', async (req, res) => {
 
 app.post('/partidas/minervacombat/:dia', async (req, res) => {
     const { dia } = req.params;
-    const { nombre, apellido, dni } = req.body;
+    const { nombre, apellido, dniJugador } = req.body;
 
     // Verificar si el valor proporcionado es uno de los valores válidos
     const valoresValidos = ['sabado', 'domingo', 'festivo'];
@@ -117,7 +184,11 @@ app.post('/partidas/minervacombat/:dia', async (req, res) => {
         return res.status(400).json({ message: 'El valor de dia proporcionado no es válido' });
     }
 
+    console.log('Datos del cuerpo de la solicitud POST recibida:', nombre, apellido, dniJugador); // Agregar este console.log para imprimir los datos recibidos
+
+
     try {
+       
         // Obtener el ID de la partida correspondiente al día especificado
         const [partida] = await pool.query(
             'SELECT ID FROM Partidas_MinervaCombat WHERE Dia = ? AND Estado = "Activa"',
@@ -133,7 +204,7 @@ app.post('/partidas/minervacombat/:dia', async (req, res) => {
         // Realiza la inserción de datos en la lista de partida del día especificado
         const [result] = await pool.query(
             `INSERT INTO ListaPartida_MinervaCombat (PartidaID, DiaPartida, NombreJugador, ApellidoJugador, DNIJugador) VALUES (?, ?, ?, ?, ?)`,
-            [partidaId, dia, nombre, apellido, dni]
+            [partidaId, dia, nombre, apellido, dniJugador]
         );
 
         res.status(201).json({ message: `Datos agregados a la lista de partida del ${dia} correctamente` });

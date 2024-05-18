@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, getReactNativePersistence } from '@firebase/auth';
-import firebaseApp from '../../../credenciales';
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
-
-// Utiliza una variable para almacenar la referencia de initializeAuth
-const auth = getAuth(firebaseApp, {
-  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
-});
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from '../../../credenciales';  // Ajusta la ruta según tu estructura de archivos
 
 const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogin, handleAuthentication }) => {
   return (
     <View style={styles.authContainer}>
-       <Text style={styles.title}>{isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}</Text>
-
-       <TextInput
+      <Text style={styles.title}>{isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}</Text>
+      <TextInput
         style={styles.input}
         value={email}
         onChangeText={setEmail}
@@ -33,7 +26,6 @@ const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogi
           <Text style={styles.buttonText}>{isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}</Text>
         </TouchableOpacity>
       </View>
-
       <View style={styles.bottomContainer}>
         <Text style={styles.toggleText} onPress={() => setIsLogin(!isLogin)}>
           {isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes una cuenta? Inicia Sesión'}
@@ -41,8 +33,7 @@ const AuthScreen = ({ email, setEmail, password, setPassword, isLogin, setIsLogi
       </View>
     </View>
   );
-}
-
+};
 
 const AuthenticatedScreen = ({ user, handleAuthentication }) => {
   return (
@@ -70,21 +61,18 @@ export default function Login() {
     return () => unsubscribe();
   }, []);
 
-  
   const handleAuthentication = async () => {
     try {
       if (user) {
         // If user is already authenticated, log out
-        console.log('User logged out successfully!');
         await signOut(auth);
+        console.log('User logged out successfully!');
       } else {
         // Sign in or sign up
         if (isLogin) {
-          // Sign in
           await signInWithEmailAndPassword(auth, email, password);
           console.log('User signed in successfully!');
         } else {
-          // Sign up
           await createUserWithEmailAndPassword(auth, email, password);
           console.log('User created successfully!');
         }
@@ -98,10 +86,8 @@ export default function Login() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {user ? (
-        // Show user's email if user is authenticated
         <AuthenticatedScreen user={user} handleAuthentication={handleAuthentication} />
       ) : (
-        // Show sign-in or sign-up form if user is not authenticated
         <AuthScreen
           email={email}
           setEmail={setEmail}

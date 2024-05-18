@@ -3,7 +3,7 @@
 const camposAirsofts = [
     
   
-    {nombre: 'MinervaCombat', ciudad:'Malaga', localizacion:'', partidas: ['Sabado','Domingo'], instagram:'minervacombat',facebook:'airsoftminervacombat', direccion:'https://minervacombat.jimdofree.com/',ImagenFondo:require('../Images/MinervaCombat.jpg')},
+    {nombre: 'MinervaCombat', ciudad:'Malaga', localizacion:'', partidas: ['Sabado','Domingo'], instagram:'minervacombat',facebook:'airsoftminervacombat', direccion:'https://minervacombat.jimdofree.com/',ImagenFondo:require('../Images/MinervaCombat.jpg'),latitud: 36.719444, longitud: -4.420000},
     {nombre: 'ZonaCeta', ciudad:'Malaga', localizacion:'', partidas: ['Sabado','Domingo'], instagram:'arturojshaw',facebook:'zonaceta',youtube:'@ZonaCetaAirsoft',ImagenFondo:require('../Images/ZonaCeta-min.jpg')},
     {nombre: 'Kampo Lira', ciudad:'Malaga', localizacion:'', partidas: ['Sabado','Domingo'], instagram:'campolira',facebook:'campolira',ImagenFondo:require('../Images/CampoLira.jpg')},
     {nombre: 'EcoSport Airsoft', ciudad:'Granada', localizacion:'', partidas: ['Sabado','Domingo'], instagram:'ecosportgranada_',facebook:'EcosportGranada', direccion:'https://ecosportgranada.com/',ImagenFondo:require('../Images/EcoSport.jpg')},
