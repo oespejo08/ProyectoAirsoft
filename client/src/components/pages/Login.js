@@ -67,14 +67,26 @@ export default function Login() {
         // If user is already authenticated, log out
         await signOut(auth);
         console.log('User logged out successfully!');
+        
       } else {
         // Sign in or sign up
         if (isLogin) {
           await signInWithEmailAndPassword(auth, email, password);
           console.log('User signed in successfully!');
+          
         } else {
           await createUserWithEmailAndPassword(auth, email, password);
           console.log('User created successfully!');
+          
+        
+       // Envía los datos del usuario al servidor para crear una entrada en la base de datos
+        await fetch('http://192.168.56.1:4000/usuarios', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: email, password: password }), // O cualquier otro dato que desees enviar
+       });
         }
       }
     } catch (error) {

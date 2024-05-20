@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { createUser, getUserByUsernameAndPassword, pool, getDatosUsers,findJugadorApuntado } from './database.js';
+import { createUser, getUserByUsernameAndPassword, pool, getDatosUsers,findJugadorApuntado, getAdministadorByEmail,getListaJugadores,getListaJugadoresAdministradores } from './database.js';
 import jwt from 'jsonwebtoken';
 
 
@@ -69,6 +69,49 @@ app.get('/usuarios/:email/perfil', async (req, res) => {
     }
 });
 
+app.get('/usuarios/listaPartida', async (req, res) => {
+    const { diaPartida, email } = req.query; // Supone que la fecha de la partida y el email se pasan como parámetros de consulta
+
+    try {
+        // Obtener la información del usuario
+        const administrador = await getAdministadorByEmail(email);
+        console.log(email);
+        let jugadores;
+        if (administrador) {
+            // Si el usuario es un administrador, obtener toda la información
+            jugadores = await getListaJugadoresAdministradores(diaPartida);
+        } else {
+            // Si el usuario es normal, obtener solo el nombre y apellido
+            jugadores = await getListaJugadores(diaPartida);
+        }
+
+        res.json(jugadores);
+    } catch (error) {
+        console.error('Error al obtener la lista de jugadores:', error);
+        res.status(500).json({ error: 'Error al obtener la lista de jugadores' });
+    }
+    
+});
+
+app.get('/usuarios/:email/administrador', async (req, res) => {
+    const { email} = req.params;
+
+    try {
+        const getAdministrador = await getAdministadorByEmail(email);
+
+        if(getAdministrador){
+            // Si se encuentra los datos del usuario, responde con los datos
+            res.status(200).json(getAdministrador);
+        }else {
+            // Si no se encuentran los datos del usuario, responde con un mensaje de error
+            res.status(404).json({ message: 'Administrador no encontrado' });
+        }
+    }catch {
+        console.error('Error al obtener los datos del perfil del Administrador:', error);
+        res.status(500).json({ message: 'Error al obtener los datos del perfil del Administrador' });
+    }
+})
+
 
 app.delete('/usuario/listaPartida/:dniJugador/:diaPartida', async (req, res) => {
     const {dniJugador,diaPartida} = req.params;
@@ -91,10 +134,10 @@ app.delete('/usuario/listaPartida/:dniJugador/:diaPartida', async (req, res) => 
 
 
 app.post('/usuarios', async (req, res) => {
-    const { usuario, password, nombre, apellido, dni, email } = req.body;
+    const { email, password } = req.body;
 
     try {
-        const nuevoUsuarioId = await createUser(usuario, password, nombre, apellido, dni, email);
+        const nuevoUsuarioId = await createUser(email, password);
         res.status(201).json({ id: nuevoUsuarioId, message: 'Usuario creado correctamente' });
     } catch (error) {
         console.error('Error al crear el usuario:', error);

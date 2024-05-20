@@ -11,9 +11,27 @@ import { ActivityIndicator } from 'react-native';
 
 
 const DetallesCampos = ({ route }) => {
-    const { campoSeleccionado, dniJugador,datosPerfil } = route.params || {}; // Obtener el campo seleccionado y el DNI del jugador de los parámetros de ruta
+    const { campoSeleccionado, dniJugador,datosPerfil, email,usuarioActual } = route.params || {}; // Obtener el campo seleccionado y el DNI del jugador de los parámetros de ruta
 
     console.log('Datos del campo seleccionado:', campoSeleccionado);
+    console.log('Email del Perfil', datosPerfil.email);
+    
+
+     useEffect(() => {
+        if (!datosPerfil) {
+            Alert.alert(
+                'Inicio de sesión requerido',
+                'Debes iniciar sesión para ver los detalles del campo.',
+                [
+                    {
+                        text: 'Ir a inicio de sesión',
+                        onPress: () => navigation.navigate('LoginScreen'),
+                    },
+                ],
+                { cancelable: false }
+            );
+        }
+    }, [datosPerfil]);
 
     
 
@@ -78,63 +96,105 @@ const DetallesCampos = ({ route }) => {
       }
   };
   
+  const handleVerListaPartida = async (diaPartida) => {
+    try {
+        // Lógica para ver la lista de partidas
+        const response = await fetch(`http://192.168.56.1:4000/usuarios/listaPartida?diaPartida=${diaPartida}&email=${datosPerfil.email}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        console.log('este es el email: ', email);
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Lista de jugadores:', data);
+            // Aquí puedes manejar los datos obtenidos, como mostrarlos en una alerta o actualizar la vista
+            let formattedData = '';
+            data.forEach((jugador, index) => {
+              const nombre = jugador.NombreJugador ?? ''; // Si NombreJugador es undefined, se asignará una cadena vacía
+              const apellido = jugador.ApellidoJugador ?? ''; // Si ApellidoJugador es undefined, se asignará una cadena vacía
+              const dni = jugador.DNIJugador ?? ''; // Si DNIJugador es undefined, se asignará una cadena vacía
+              formattedData += `Jugador ${index + 1}: ${nombre} ${apellido} (${dni})\n`;
+            });
+            
+            Alert.alert('Lista de jugadores', formattedData);
+        } else {
+            console.error('Error al obtener la lista de jugadores:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error al realizar la solicitud:', error);
+    }
+};
   
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.tituloCampo}> {campoSeleccionado.nombre}</Text>
-      <Text style={styles.subText}> {campoSeleccionado.ciudad}</Text>
-      <Text style={styles.subText}>Localización: {campoSeleccionado.localizacion}</Text>
-             
-      <Text style={styles.subText}>Partidas:</Text>
-      {campoSeleccionado.partidas.map((partida, index) => (
-        <Text key={index}>{partida}</Text>
-      ))}
-      {campoSeleccionado.instagram && (
-        <TouchableOpacity onPress={() => goToInstagramProfile(campoSeleccionado.instagram)}>
-          <View style={styles.iconosContainer}>
-            <InstagramIcons style={styles.icono} />
-            <Text>Perfil de Instagram</Text>
-          </View>
-        </TouchableOpacity>
-      )}
-      {campoSeleccionado.facebook && (
-        <TouchableOpacity onPress={() => goToFacebookProfile(campoSeleccionado.facebook)}>
-          <View style={styles.iconosContainer}>
-            <FacebookIcons style={styles.icono} />
-            <Text>Perfil de Facebook</Text>
-          </View>
-        </TouchableOpacity>
-      )}
-      {campoSeleccionado.direccion && (
-        <TouchableOpacity onPress={() => goToWebDirecction(campoSeleccionado.direccion)}>
-          <View style={styles.iconosContainer}>
-            <ChromeIcons style={styles.icono} />
-            <Text>Pagina Web</Text>
-          </View>
-        </TouchableOpacity>
-      )}
-      {campoSeleccionado.youtube && (
-        <TouchableOpacity onPress={() => goToYoutubeProfile(campoSeleccionado.youtube)}>
-          <View style={styles.iconosContainer}>
-            <YoutubeIcons style={styles.icono} />
-            <Text>Canal de Youtube</Text>
-          </View>
-        </TouchableOpacity>
-      )}
-      {/* Botones para quitarse de las partidas */}
-      <TouchableOpacity onPress={() => handleQuitarsePartida('sábado')}>
-        <View style={styles.button}>
-          <Text style={styles.buttonText}>Quitarse de la partida del Sábado</Text>
+return (
+  <View style={styles.container}>
+    <Text style={styles.tituloCampo}> {campoSeleccionado.nombre}</Text>
+    <Text style={styles.subText}> {campoSeleccionado.ciudad}</Text>
+    <Text style={styles.subText}>Localización: {campoSeleccionado.localizacion}</Text>
+           
+    <Text style={styles.subText}>Partidas:</Text>
+    {campoSeleccionado.partidas.map((partida, index) => (
+      <Text key={index}>{partida}</Text>
+    ))}
+    {campoSeleccionado.instagram && (
+      <TouchableOpacity onPress={() => goToInstagramProfile(campoSeleccionado.instagram)}>
+        <View style={styles.iconosContainer}>
+          <InstagramIcons style={styles.icono} />
+          <Text>Perfil de Instagram</Text>
         </View>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => handleQuitarsePartida('domingo')}>
-        <View style={styles.button}>
-          <Text style={styles.buttonText}>Quitarse de la partida del Domingo</Text>
+    )}
+    {campoSeleccionado.facebook && (
+      <TouchableOpacity onPress={() => goToFacebookProfile(campoSeleccionado.facebook)}>
+        <View style={styles.iconosContainer}>
+          <FacebookIcons style={styles.icono} />
+          <Text>Perfil de Facebook</Text>
         </View>
       </TouchableOpacity>
-    </View>
-  );
+    )}
+    {campoSeleccionado.direccion && (
+      <TouchableOpacity onPress={() => goToWebDirecction(campoSeleccionado.direccion)}>
+        <View style={styles.iconosContainer}>
+          <ChromeIcons style={styles.icono} />
+          <Text>Pagina Web</Text>
+        </View>
+      </TouchableOpacity>
+    )}
+    {campoSeleccionado.youtube && (
+      <TouchableOpacity onPress={() => goToYoutubeProfile(campoSeleccionado.youtube)}>
+        <View style={styles.iconosContainer}>
+          <YoutubeIcons style={styles.icono} />
+          <Text>Canal de Youtube</Text>
+        </View>
+      </TouchableOpacity>
+    )}
+    {/* Botones para quitarse de las partidas */}
+    <TouchableOpacity onPress={() => handleQuitarsePartida('sábado')}>
+      <View style={styles.button}>
+        <Text style={styles.buttonText}>Quitarse de la partida del Sábado</Text>
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity onPress={() => handleQuitarsePartida('domingo')}>
+      <View style={styles.button}>
+        <Text style={styles.buttonText}>Quitarse de la partida del Domingo</Text>
+      </View>
+    </TouchableOpacity>
+    {/* Nuevo botón para ver la lista de partidas */}
+    <TouchableOpacity onPress={() => handleVerListaPartida('sábado')}>
+      <View style={styles.buttonBlue}>
+        <Text style={styles.buttonText}>Ver lista de la partida del Sábado</Text>
+      </View>
+    </TouchableOpacity>
+    <TouchableOpacity onPress={() => handleVerListaPartida('domingo')}>
+      <View style={styles.buttonBlue}>
+        <Text style={styles.buttonText}>Ver lista de la partida del Domingo</Text>
+      </View>
+    </TouchableOpacity>
+  </View>
+);
+
 };
 
 const styles = StyleSheet.create({
@@ -178,6 +238,12 @@ const styles = StyleSheet.create({
   map: {
     width: '100%',
     height: 200,
+    marginTop: 20,
+  },
+  buttonBlue: {
+    backgroundColor: '#00f', // Azul
+    padding: 10,
+    borderRadius: 5,
     marginTop: 20,
   },
 });

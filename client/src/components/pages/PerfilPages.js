@@ -13,9 +13,11 @@ const PerfilPage = ({navigation}) => {
     rolJuego: '',
     ciudad: '',
     fotoPerfil: null ,
-    dniJugador:''
-    
+    dniJugador:'',
+    uid:'',
+    email:''
   });
+  
 
   useEffect(() => {
     cargarPerfilLocalmente();
@@ -39,6 +41,7 @@ const PerfilPage = ({navigation}) => {
     };
   
     checkUserLoggedIn();
+    
   }, []);
 
   
@@ -60,6 +63,7 @@ const PerfilPage = ({navigation}) => {
     } catch (error) {
       console.error('Error al cargar el perfil desde AsyncStorage:', error);
     }
+    
   };
 
   const cargarPerfilRemotamente = async () => {
@@ -83,9 +87,12 @@ const PerfilPage = ({navigation}) => {
             rolJuego: datosUsuario.rolJuego || prevPerfil.rolJuego,
             ciudad: datosUsuario.ciudad || prevPerfil.ciudad,
             fotoPerfil: perfil.fotoPerfil || prevPerfil.fotoPerfil, // Mantenemos la foto de perfil si ya se seleccionó una
-            dniJugador: datosUsuario.DNIJUGADOR || prevPerfil.dniJugador
-          
+            dniJugador: datosUsuario.DNIJUGADOR || prevPerfil.dniJugador,
+            uid: usuarioActual.uid,
+            email: usuarioActual.email 
+            
          }));
+         
         } else {
           console.error('Error al cargar el perfil desde el servidor:', response.statusText);
         }
@@ -148,6 +155,7 @@ const PerfilPage = ({navigation}) => {
 
         if (response.ok) {
           console.log('Éxito', 'Datos del perfil actualizados correctamente en MySQL.');
+          console.log(usuarioActual.email);
         } else {
           console.error('Error', 'No se pudieron guardar los cambios en el perfil en MySQL.');
         }
@@ -163,6 +171,7 @@ const PerfilPage = ({navigation}) => {
     } catch (error) {
       console.error('Error al actualizar datos del perfil:', error);
       console.log('Error', 'No se pudieron guardar los cambios en el perfil.');
+
     }
 };
 

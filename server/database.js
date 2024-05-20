@@ -32,11 +32,11 @@ pool.getConnection((err, connection) => {
     }
 });
 
-export async function createUser(usuario, password) {
+export async function createUser(Email, password) {
     try {
         const [result] = await pool.query(
-            'INSERT INTO Users (Usuario, Password) VALUES (?, ?)',
-            [usuario, password]
+            'INSERT INTO Users (Email, Password) VALUES (?, ?)',
+            [Email, password]
         );
         console.log('Usuario creado con éxito. ID:', result.insertId);
         return result.insertId;
@@ -54,15 +54,38 @@ export async function findJugadorApuntado(DNIJUGADOR,DiaPartida){
         console.error('Error al obtener los datos:', error);
         throw error;
     }
+};
+
+export async function getListaJugadoresAdministradores(DiaPartida){
+    try{
+        
+        const [rows] = await pool.query('SELECT NombreJugador,ApellidoJugador,DNIJugador FROM ListaPartida_MinervaCombat WHERE DiaPartida=?',[DiaPartida])
+        return rows;
+    }catch (error) {
+        console.error('Error al obtener los datos:', error);
+        throw error;
+    }
 }
 
+export async function getListaJugadores(DiaPartida){
+    try{
+        const [rows] = await pool.query('SELECT NombreJugador,ApellidoJugador FROM ListaPartida_MinervaCombat WHERE DiaPartida=?',[DiaPartida])
+        return rows;
+    }catch (error) {
+        console.error('Error al obtener los datos:', error);
+        throw error;
+    }
+}
+
+
+
 // Función para obtener un administrador por su ID
-export async function getAdministadorById(id) {
+export async function getAdministadorByEmail(email) {
     try {
-        const [rows] = await pool.query('SELECT * FROM Administradores WHERE id = ?', [id]);
+        const [rows] = await pool.query('SELECT * FROM Users WHERE Email = ? AND is_admin=true', [email]);
         return rows[0]; // Devuelve el primer administrador encontrado o null si no hay resultados
     } catch (error) {
-        console.error('Error al obtener el administrador por ID:', error);
+        console.error('Error al obtener el administrador por Email:', error);
         throw error;
     }
 }

@@ -2,12 +2,15 @@ import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+
+
 const Footer = () => {
   const navigation = useNavigation();
   const handlePlayPress = () => {
     //navegar a la pantalla de jugar
     navigation.navigate('Home')
-    console.log('Boton de jugar pulsado');
+    console.log('Boton de Inicio pulsado');
+    
   };
 
   const handleShopsPress = () => {
