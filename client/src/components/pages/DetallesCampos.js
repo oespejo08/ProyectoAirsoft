@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import { Linking } from 'react-native';
 import InstagramIcons from '../icons/InstagramIcons';
 import FacebookIcons from '../icons/FacebookIcons';
@@ -13,6 +13,7 @@ import { ActivityIndicator } from 'react-native';
 const DetallesCampos = ({ route }) => {
     const { campoSeleccionado, dniJugador,datosPerfil, email,usuarioActual } = route.params || {}; // Obtener el campo seleccionado y el DNI del jugador de los parámetros de ruta
 
+    
     console.log('Datos del campo seleccionado:', campoSeleccionado);
     console.log('Email del Perfil', datosPerfil.email);
     
@@ -129,10 +130,10 @@ const DetallesCampos = ({ route }) => {
   
 
 return (
+    <ScrollView>
   <View style={styles.container}>
     <Text style={styles.tituloCampo}> {campoSeleccionado.nombre}</Text>
     <Text style={styles.subText}> {campoSeleccionado.ciudad}</Text>
-    <Text style={styles.subText}>Localización: {campoSeleccionado.localizacion}</Text>
            
     <Text style={styles.subText}>Partidas:</Text>
     {campoSeleccionado.partidas.map((partida, index) => (
@@ -192,12 +193,41 @@ return (
         <Text style={styles.buttonText}>Ver lista de la partida del Domingo</Text>
       </View>
     </TouchableOpacity>
+    <Text style={styles.subText}>Localización: {campoSeleccionado.localizacion}</Text>
+
+<MapView
+                style={styles.map}
+                initialRegion={{
+                  latitude: campoSeleccionado.latitud,
+                  longitude: campoSeleccionado.longitud,
+                  latitudeDelta: 0.02,
+                  longitudeDelta: 0.02,
+                }}
+                >
+                <Marker
+                    coordinate={{
+                      latitude: campoSeleccionado.latitud,
+                      longitude: campoSeleccionado.longitud,
+                    }}
+                    title={campoSeleccionado.nombre}
+                    description={campoSeleccionado.ciudad}
+                    calloutEnabled={true}
+                    />
+            </MapView>
+            
   </View>
+ </ScrollView>
 );
 
 };
 
 const styles = StyleSheet.create({
+  mapContainer: {
+    width: '50%',
+    height: 300, // Ajusta la altura según tus necesidades
+    marginTop: 20,
+    marginBottom: 20,
+  },
   container: {
     flex: 1,
     justifyContent: 'flex-start',
@@ -236,7 +266,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   map: {
-    width: '100%',
+    width: '99%',
     height: 200,
     marginTop: 20,
   },
